@@ -2,7 +2,7 @@ long-stay-insights
 ==============================
 
 # Autorzy
-Bartosz Psik
+Bartosz Psik <br>
 Maksymilian Baj
 
 
@@ -33,7 +33,7 @@ Jak każda nowoczesna firma internetowa, Nocarz zbiera dane dotyczące swojej dz
 
 
 # Organizacja Projektu
-
+'''
 long-stay-insights/
 ├── LICENSE                  # Licencja projektu
 ├── Makefile                # Polecenia pomocnicze (np. make data, make lint, make jupyter)
@@ -63,6 +63,6 @@ long-stay-insights/
 │   ├── features/           # Tworzenie cech do modelowania (build_features.py)
 │   ├── models/             # Trenowanie i predykcje modeli ML (train_model.py, predict_model.py)
 │   └── visualization/      # Wykresy i wizualizacje wyników (visualize.py)
-
+''
 
 <p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>
