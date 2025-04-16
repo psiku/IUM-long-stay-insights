@@ -11,6 +11,7 @@ packages = [{ include = "src", from = "." }]
 [tool.poetry.dependencies]
 python = "^3.11"
 ipykernel = "^6.29.5"
+zstandard = "^0.23.0"
 
 [tool.poetry.group.dev.dependencies]
 pandas = "^2.2.3"
