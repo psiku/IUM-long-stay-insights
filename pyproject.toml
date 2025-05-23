@@ -17,6 +17,9 @@ langdetect = "^1.0.9"
 sentence-transformers = "^4.1.0"
 hdbscan = "^0.8.40"
 xgboost = "^3.0.1"
+fastapi = {extras = ["standard"], version = "^0.115.12"}
+joblib = "^1.5.1"
+pydantic-settings = "^2.9.1"
 
 [tool.poetry.group.dev.dependencies]
 pandas = "^2.2.3"

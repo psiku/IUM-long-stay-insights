@@ -19,3 +19,7 @@ lint:
 
 format:
 	poetry run ruff format .
+
+
+run:
+	poetry run fastapi dev microservice/main.py
