@@ -16,6 +16,7 @@ transformers = "^4.51.3"
 langdetect = "^1.0.9"
 sentence-transformers = "^4.1.0"
 hdbscan = "^0.8.40"
+xgboost = "^3.0.1"
 
 [tool.poetry.group.dev.dependencies]
 pandas = "^2.2.3"
