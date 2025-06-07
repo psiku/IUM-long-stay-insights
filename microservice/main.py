@@ -1,4 +1,5 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Request
+import random
 from joblib import load
 import pandas as pd
 import logging
@@ -10,7 +11,10 @@ from utils import load_torch_model, load_normalized_map
 from prediction import make_xgboost_predictions, make_naive_classifier_predictions
 from config import settings
 from proccesing import process_input_data
+from logger import get_logger
 
+
+logger = get_logger(__name__)
 
 
 @asynccontextmanager
@@ -23,7 +27,7 @@ async def lifespan(app: FastAPI):
             settings.NAIVE_CLASSIFIER_MODEL_PATH, input_size=len(df.columns.to_list()) - 1
         )
         app.state.normalized_map = load_normalized_map(settings.NORMALIZED_MAP_PATH)
-        logging.info("Models loaded successfully.")
+        logger.info("Models loaded successfully.")
         yield
     except Exception as e:
         raise RuntimeError(f"Failed to load model: {str(e)}")
@@ -53,6 +57,37 @@ async def predict_with_base_model(linsting_inputs: list[ListingInput]):
     predictions = make_naive_classifier_predictions(
         model=app.state.naive_classifier, df=processed_data
     )
+    return predictions
+
+
+@app.post("/AB-test", response_model=list[Prediction])
+async def predict_ab_test(linsting_inputs: list[ListingInput], request: Request):
+    model_choice = random.choice(["xgboost", "base"])
+
+    processed_data = process_input_data(
+        pd.DataFrame([listing.model_dump() for listing in linsting_inputs]),
+        app.state.xgboost_required_columns,
+        app.state.normalized_map
+    )
+
+    if model_choice == "xgboost":
+        predictions = make_xgboost_predictions(
+            processed_data=processed_data,
+            model=app.state.xgboost_model
+        )
+    else:
+        predictions = make_naive_classifier_predictions(
+            model=app.state.naive_classifier,
+            df=processed_data
+        )
+
+    for listing, prediction in zip(linsting_inputs, predictions):
+        logger.info(
+            f"client={request.client.host} model={model_choice} "
+            f"listing_id={prediction.listing_id} prediction={prediction.prediction} "
+            f"input={listing.model_dump()}"
+        )
+
     return predictions
 
  

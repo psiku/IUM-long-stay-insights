@@ -4,6 +4,10 @@ from joblib import load
 
 from models import Prediction, ListingInput
 from config import settings
+from logger import get_logger
+
+
+logger = get_logger(__name__)
 
 
 def make_xgboost_predictions(model, processed_data: pd.DataFrame) -> list[Prediction]:

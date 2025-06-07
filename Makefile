@@ -23,3 +23,7 @@ format:
 
 run:
 	poetry run fastapi dev microservice/main.py
+
+
+tests:
+	poetry run pytest microservice
