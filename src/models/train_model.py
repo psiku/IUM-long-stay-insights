@@ -5,6 +5,7 @@ from tqdm import tqdm
 from torch.utils.data import DataLoader
 from sklearn.metrics import accuracy_score, roc_auc_score, average_precision_score
 import numpy as np
+from src.data.set_seed import set_seed
 
 # training
 def train_classifier(

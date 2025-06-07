@@ -1,8 +1,15 @@
 import numpy as np
 import pandas as pd
 import torch
-from torch.utils.data import DataLoader, TensorDataset
+from torch.utils.data import DataLoader, TensorDataset, RandomSampler
 from sklearn.model_selection import train_test_split
+import random
+
+def seed_worker(worker_id):
+    worker_seed = torch.initial_seed() % 2**32
+    np.random.seed(worker_seed)
+    random.seed(worker_seed)
+
 
 def train_test_split_data(
     df: pd.DataFrame,
@@ -46,19 +53,38 @@ def create_dataloader(
     y: pd.Series,
     x_num=None,
     batch_size: int = 32,
-    shuffle: bool = True
+    shuffle: bool = True,
+    seed: int = 42,
+    num_workers: int = 0
 ):
+
     if x_num is not None:
         x_cat_tensor = torch.tensor(x.values, dtype=torch.long)
         x_num_tensor = torch.tensor(x_num.values, dtype=torch.float32)
         y_tensor = torch.tensor(y.values, dtype=torch.long)
-
         dataset = TensorDataset(x_cat_tensor, x_num_tensor, y_tensor)
     else:
         x_tensor = torch.tensor(x.values, dtype=torch.float32)
         y_tensor = torch.tensor(y.values, dtype=torch.long)
-
         dataset = TensorDataset(x_tensor, y_tensor)
 
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
-    return dataloader
+    g = torch.Generator()
+    g.manual_seed(seed)
+
+    if shuffle:
+        sampler = RandomSampler(dataset, generator=g)
+        shuffle_flag = False
+    else:
+        sampler = None
+        shuffle_flag = False
+
+
+    return DataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=shuffle_flag,
+        sampler=sampler,
+        num_workers=num_workers,
+        worker_init_fn=seed_worker,
+        generator=g
+    )
