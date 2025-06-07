@@ -1,16 +1,32 @@
 import pandas as pd
+import torch
 from joblib import load
 
-from models import Prediction
+from models import Prediction, ListingInput
 from config import settings
 
 
-def make_xgboost_predictions(df: pd.DataFrame) -> list[Prediction]:
+def make_xgboost_predictions(model, processed_data: pd.DataFrame) -> list[Prediction]:
     preds = []
-    model = load(settings.XGBOOST_MODEL_PATH)
-    for index, row in df.iterrows():
-        id = row["id"]
-        row = row.drop(["id"])
-        pred = model.predict(row.values.reshape(1, -1))
-        preds.append(Prediction(listing_id=id, prediction="short" if pred[0] == 0 else "long"))
+    for _, row in processed_data.iterrows():
+        listing_id = row["id"]
+        input_vector = row.drop("id").to_frame().T
+        pred = model.predict(input_vector)
+        preds.append(Prediction(listing_id=listing_id, prediction="short" if pred[0] == 0 else "long"))
+    return preds
+
+
+def make_naive_classifier_predictions(model, df: pd.DataFrame) -> list[Prediction]:
+    preds = []
+    model.eval()
+
+    with torch.no_grad():
+        for _, row in df.iterrows():
+            listing_id = row.get("id", None)
+            input_tensor = torch.tensor(row.drop("id").values, dtype=torch.float32).unsqueeze(0)
+            output = model(input_tensor)
+            predicted_class = torch.argmax(output, dim=1).item()
+            label = "short" if predicted_class == 0 else "long"
+            preds.append(Prediction(listing_id=listing_id, prediction=label))
+
     return preds
