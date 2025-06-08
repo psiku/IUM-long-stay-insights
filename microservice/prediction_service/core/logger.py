@@ -2,12 +2,14 @@ import os
 import logging
 from logging.handlers import TimedRotatingFileHandler
 
+from prediction_service.core.config import settings
+
 
 def get_logger(name: str) -> logging.Logger:
     """
     Get a logger with a specific name and configuration.
     """
-    os.makedirs("microservice/logs", exist_ok=True)
+    os.makedirs(settings.LOGS_DIR, exist_ok=True)
 
 
     logger = logging.getLogger(name)
@@ -19,7 +21,7 @@ def get_logger(name: str) -> logging.Logger:
     formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
 
     file_handler = TimedRotatingFileHandler(
-        filename="microservice/logs/app.log",
+        filename=f"{settings.LOGS_DIR}/app.log",
         when="midnight",
         interval=1,
         backupCount=7,

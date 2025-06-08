@@ -7,23 +7,21 @@ install:
 test_environment:
 	poetry run python test_environment.py
 
-
 clean:
 	find . -type f -name "*.py[co]" -delete
 	find . -type d -name "__pycache__" -delete
 
-
 lint:
 	poetry run flake8 src
-
 
 format:
 	poetry run ruff format .
 
-
 run:
 	poetry run fastapi dev microservice/prediction_service/main.py
 
-
 tests:
 	poetry run pytest microservice
+
+run-ab:
+	poetry run python microservice/AB_experiments/experiment.py

@@ -7,5 +7,6 @@ class Settings(BaseSettings):
 
     NAIVE_CLASSIFIER_MODEL_PATH: str = "microservice/trained_models/torch/NaiveClassifier.pth"
     NORMALIZED_MAP_PATH: str = "microservice/data/amenities_normalized_map.json"
+    LOGS_DIR: str = "microservice/AB_experiments/logs"
 
 settings = Settings()
