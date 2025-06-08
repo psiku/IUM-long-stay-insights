@@ -1,21 +1,8 @@
 import pandas as pd
 import torch
 import json
-from naive_classifier import NaiveClassifier
 
-
-def get_rows_by_ids(df: pd.DataFrame, ids: list) -> pd.DataFrame:
-    return df[df['id'].isin(ids)]
-
-
-def load_data(file_path: str) -> pd.DataFrame:
-    return pd.read_csv(file_path)
-
-
-def get_data_for_prediction(path_to_csv: str, ids: list) -> pd.DataFrame:
-    df = load_data(path_to_csv)
-    df = get_rows_by_ids(df, ids)
-    return df
+from prediction_service.naive_classifier import NaiveClassifier
 
 
 def load_torch_model(model_path: str, input_size: int):

@@ -1,17 +1,16 @@
 from fastapi import FastAPI, Request
-import random
-from joblib import load
-import pandas as pd
-import logging
-
 from contextlib import asynccontextmanager
+from joblib import load
 
-from models import ListingInput, Prediction
-from utils import load_torch_model, load_normalized_map
-from prediction import make_xgboost_predictions, make_naive_classifier_predictions
-from config import settings
-from proccesing import process_input_data
-from logger import get_logger
+import random
+import pandas as pd
+
+from prediction_service.models import Prediction, ListingInput
+from prediction_service.utils import load_torch_model, load_normalized_map
+from prediction_service.prediction import make_xgboost_predictions, make_naive_classifier_predictions
+from prediction_service.core.config import settings
+from prediction_service.core.logger import get_logger
+from prediction_service.proccesing import process_input_data
 
 
 logger = get_logger(__name__)

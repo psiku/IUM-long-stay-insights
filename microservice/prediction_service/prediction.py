@@ -1,10 +1,8 @@
 import pandas as pd
 import torch
-from joblib import load
 
-from models import Prediction, ListingInput
-from config import settings
-from logger import get_logger
+from prediction_service.models import Prediction
+from prediction_service.core.logger import get_logger
 
 
 logger = get_logger(__name__)

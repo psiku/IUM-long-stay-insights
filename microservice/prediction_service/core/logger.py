@@ -7,7 +7,7 @@ def get_logger(name: str) -> logging.Logger:
     """
     Get a logger with a specific name and configuration.
     """
-    os.makedirs("logs", exist_ok=True)
+    os.makedirs("microservice/logs", exist_ok=True)
 
 
     logger = logging.getLogger(name)
@@ -19,7 +19,7 @@ def get_logger(name: str) -> logging.Logger:
     formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
 
     file_handler = TimedRotatingFileHandler(
-        filename="logs/app.log",
+        filename="microservice/logs/app.log",
         when="midnight",
         interval=1,
         backupCount=7,
