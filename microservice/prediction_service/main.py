@@ -1,0 +1,92 @@
+from fastapi import FastAPI, Request
+from contextlib import asynccontextmanager
+from joblib import load
+
+import random
+import pandas as pd
+
+from prediction_service.models import Prediction, ListingInput
+from prediction_service.utils import load_torch_model, load_normalized_map
+from prediction_service.prediction import make_xgboost_predictions, make_naive_classifier_predictions
+from prediction_service.core.config import settings
+from prediction_service.core.logger import get_logger
+from prediction_service.proccesing import process_input_data
+
+
+logger = get_logger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        app.state.xgboost_model = load(settings.XGBOOST_MODEL_PATH)
+        df = pd.read_csv(settings.XGBOOST_DATA_PATH, nrows=1)
+        app.state.xgboost_required_columns = df.columns.tolist()
+        app.state.naive_classifier = load_torch_model(
+            settings.NAIVE_CLASSIFIER_MODEL_PATH, input_size=len(df.columns.to_list()) - 1
+        )
+        app.state.normalized_map = load_normalized_map(settings.NORMALIZED_MAP_PATH)
+        logger.info("Models loaded successfully.")
+        yield
+    except Exception as e:
+        raise RuntimeError(f"Failed to load model: {str(e)}")
+
+
+app = FastAPI(lifespan=lifespan, prefix="/predict", tags=["predict"])
+
+
+@app.post("/xgboost", response_model=list[Prediction])
+async def predict_with_XGBoost(linsting_inputs: list[ListingInput]):
+    processed_data = process_input_data(
+        pd.DataFrame([listing.model_dump() for listing in linsting_inputs]),
+        app.state.xgboost_required_columns,
+        app.state.normalized_map
+)
+    predictions = make_xgboost_predictions(processed_data=processed_data, model=app.state.xgboost_model) 
+    return predictions
+
+
+@app.post("/base-model", response_model=list[Prediction])
+async def predict_with_base_model(linsting_inputs: list[ListingInput]):
+    processed_data = process_input_data(
+        pd.DataFrame([listing.model_dump() for listing in linsting_inputs]),
+        app.state.xgboost_required_columns,
+        app.state.normalized_map
+    )
+    predictions = make_naive_classifier_predictions(
+        model=app.state.naive_classifier, df=processed_data
+    )
+    return predictions
+
+
+@app.post("/AB-test", response_model=list[Prediction])
+async def predict_ab_test(linsting_inputs: list[ListingInput], request: Request):
+    model_choice = random.choice(["xgboost", "base"])
+
+    processed_data = process_input_data(
+        pd.DataFrame([listing.model_dump() for listing in linsting_inputs]),
+        app.state.xgboost_required_columns,
+        app.state.normalized_map
+    )
+
+    if model_choice == "xgboost":
+        predictions = make_xgboost_predictions(
+            processed_data=processed_data,
+            model=app.state.xgboost_model
+        )
+    else:
+        predictions = make_naive_classifier_predictions(
+            model=app.state.naive_classifier,
+            df=processed_data
+        )
+
+    for listing, prediction in zip(linsting_inputs, predictions):
+        logger.info(
+            f"client={request.client.host} model={model_choice} "
+            f"listing_id={prediction.listing_id} prediction={prediction.prediction} "
+            f"input={listing.model_dump()}"
+        )
+
+    return predictions
+
+ 
